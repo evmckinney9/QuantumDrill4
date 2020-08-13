@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 
 """ Programming Exercise 2.1 """
 max_points = 10
+max_particles = 5
 
 def simpleQuantumSystem(ket1, ket2=np.array(None)):
 
@@ -92,6 +93,16 @@ def dynamicSimulation(ket, matrix_sequence, timesteps=-1,):
     return np.matmul(unitary,ket)
 
 """Programming Excercise 5.2"""
-def multiQuantumSystem():
-    pass
-   
+def multiQuantumSystem(*multi_stateSpace):
+    #returns a tensor product of the vector spaces
+    num_particles = len(multi_stateSpace)
+    if num_particles <= 0 or num_particles > max_particles:
+        raise Exception("invalid number of particles")
+    
+    tensor_product = multi_stateSpace[0]
+
+    for i in range(1, num_particles):
+        tensor_product = np.kron(tensor_product, multi_stateSpace[i])
+
+    return tensor_product
+    
