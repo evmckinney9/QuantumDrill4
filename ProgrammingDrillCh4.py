@@ -38,21 +38,6 @@ def simpleQuantumSystem(ket1, ket2=np.array(None)):
         #constitute an orthognal basis of the state space
         return abs(amplitude)**2
 
-def debugObservationProbability():
-    ket1 = np.array([[-3-1j, -2j, 1j, 2]]).T
-
-    a = simpleQuantumSystem(ket1)
-    print(a)
-
-def debugTransitionCalc():
-    ket1 = [1,-1j]
-    ket2 = [1j,1] 
-    v = simpleQuantumSystem(ket1, ket2)
-
-    ket1 = [(2**.5)/2,1j*(2**.5)/2]
-    ket2 = [1j*(2**.5)/2,-1*(2**.5)/2] 
-    v = simpleQuantumSystem(ket1, ket2)
-    print()
 
 """ Programming Exercise 2.2 """
 def square(sq):
@@ -91,92 +76,6 @@ def observableVariance(observable, ket):
     #see example 4.2.6 from book
     return np.matmul(np.matmul(np.conj(ket.T), h_o_squared), ket)
 
-def debugVerifyHermitian():
-    l1 = [[5,4+5j,6-16j], [4-5j,13,7],[6+16j,7,-2.1]]
-    verifyHermitian(l1)
-
-def debugObservableMeanValue():
-    l1 = np.array([[1, -1j], [1j, 2]])
-    ket1 = np.array([[2**.5/2, (2**.5/2)*1j]]).T
-    a = observableMeanValue(l1,ket1)
-    print(a) #a=2.5
-
-    l1 = np.array([[-1, -1j], [1j, 1]])
-    ket1 = np.array([[-1, -1-1j]]).T
-    a = observableMeanValue(l1,ket1)
-    print(a) #a==3
-
-    l1 = np.array([[-1, -1j], [1j, 1]])
-    ket1 = np.array([[.5, .5]]).T
-    a = observableMeanValue(l1,ket1)
-    print(a) #a==0
-
-def debugoObservableVariance():
-    l1 = np.array([[1, -1j], [1j, 2]])
-    ket1 = np.array([[2**.5/2, (2**.5/2)*1j]]).T
-    a = observableVariance(l1,ket1)
-    print(a)
-
-""" Programming Exercise 3.2 """
-def observableEigenVectors(observable):
-    _, eigenvectors = np.linalg.eigh(observable)
-    return eigenvectors
-
-def observableEigenValues(observable):
-    eigenvalues, _ = np.linalg.eigh(observable)
-    return eigenvalues
-
-def eigenstatesProability(observable, ket):
-    #return the probability that the state will transition to each of the eigenstates
-    eigenstates = observableEigenVectors(observable)
-    eigenvalues = observableEigenValues(observable)
-    pairs = []
-    for eigenvalue, eigenstate in zip(eigenvalues, eigenstates.T):
-        #eigenstate should be a column vector
-        eigenstate.shape = (eigenstate.size,1)
-        probability = simpleQuantumSystem(ket, eigenstate)
-        pairs.append((eigenvalue, probability))
-    return pairs
-
-def eigenvalueMeanValue(observable, ket):
-    #calculates expected value of observable on a state
-    #using eigenvalues and probabilities
-    pairs = eigenstatesProability(observable, ket)
-    mean = 0
-    for i in pairs:
-        mean += i[0] * i[1]
-    return mean
-
-def plotProbabilityDistribution(li):
-    xk = [x[0] for x in li]
-    pk = [y[1] for y in li]
-    plt.plot(xk,pk)
-    plt.savefig('books_read.png')
-
-def debugObservableEigenValues():
-    o = [[-1, -1j], [1j, 1]]
-    e = observableEigenVectors(o)
-    print(e)
-
-def debugEigenstatesProability():
-    l1 = np.array([[1, -1j], [1j, 2]])
-    ket1 = np.array([[2**.5/2, (2**.5/2)*1j]]).T
-    a = eigenvalueMeanValue(l1,ket1)
-    b = observableMeanValue(l1,ket1)
-    print(a==b) #a=2.5, calculates a=2.5
-    
-    l1 = np.array([[-1, -1j], [1j, 1]])
-    ket1 = np.array([[-1, -1-1j]]).T
-    a = eigenvalueMeanValue(l1,ket1)
-    b = observableMeanValue(l1,ket1)
-    print(a==b) #a==3, but calculates a=1
-
-    l1 = np.array([[-1, -1j], [1j, 1]])
-    ket1 = np.array([[.5, .5]]).T
-    a = eigenvalueMeanValue(l1,ket1)
-    b = observableMeanValue(l1,ket1)
-    print(a==b) #a==0, calculates a=0
-
 """Programming Excercise 4.2"""
 def dynamicSimulation(ket, matrix_sequence, timesteps=-1,):
     if timesteps == -1: #input validation
@@ -192,18 +91,7 @@ def dynamicSimulation(ket, matrix_sequence, timesteps=-1,):
         unitary = np.matmul(unitary, matrix_sequence[i])
     return np.matmul(unitary,ket)
 
-
-def debugDynamics():
-    m = [[0,.7071067812,.7071067812,0],[.7071067812,0,0,-.7071067812],[.7071067812,0,0,.7071067812],[0,-.7071067812,.7071067812,0]]
-    ket = np.array([[1,0,0,0]]).T
-    ms = [m,m,m]
-    k = dynamicSimulation(ket, ms, 2)
-    print(k)
-
 """Programming Excercise 5.2"""
 def multiQuantumSystem():
     pass
-
-if __name__ == "__main__":
-    debugDynamics()
-    
+   
