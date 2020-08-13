@@ -39,7 +39,8 @@ def simpleQuantumSystem(ket1, ket2=np.array(None)):
         return abs(amplitude)**2
 
 def debugObservationProbability():
-    ket1 = [-3-1j, -2j, 1j, 2]
+    ket1 = np.array([[-3-1j, -2j, 1j, 2]]).T
+
     a = simpleQuantumSystem(ket1)
     print(a)
 
@@ -116,7 +117,7 @@ def debugoObservableVariance():
     a = observableVariance(l1,ket1)
     print(a)
 
-""" Programming Exercise 2.3 """
+""" Programming Exercise 3.2 """
 def observableEigenVectors(observable):
     _, eigenvectors = np.linalg.eigh(observable)
     return eigenvectors
@@ -175,7 +176,34 @@ def debugEigenstatesProability():
     a = eigenvalueMeanValue(l1,ket1)
     b = observableMeanValue(l1,ket1)
     print(a==b) #a==0, calculates a=0
+
+"""Programming Excercise 4.2"""
+def dynamicSimulation(ket, matrix_sequence, timesteps=-1,):
+    if timesteps == -1: #input validation
+        timesteps = len(matrix_sequence)
+    if timesteps > len(matrix_sequence) or timesteps < 0:
+        raise Exception("invalid timesteps")
+
+    if timesteps == 0:
+        return ket
     
+    unitary = matrix_sequence[1]
+    for i in range(1,timesteps):
+        unitary = np.matmul(unitary, matrix_sequence[i])
+    return np.matmul(unitary,ket)
+
+
+def debugDynamics():
+    m = [[0,.7071067812,.7071067812,0],[.7071067812,0,0,-.7071067812],[.7071067812,0,0,.7071067812],[0,-.7071067812,.7071067812,0]]
+    ket = np.array([[1,0,0,0]]).T
+    ms = [m,m,m]
+    k = dynamicSimulation(ket, ms, 2)
+    print(k)
+
+"""Programming Excercise 5.2"""
+def multiQuantumSystem():
+    pass
+
 if __name__ == "__main__":
-    debugEigenstatesProability()
+    debugDynamics()
     
