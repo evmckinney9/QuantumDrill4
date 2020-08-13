@@ -1,0 +1,465 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{amssymb} 
+\usepackage[margin=1.0in]{geometry}
+
+\title{Programming Quantum Simulation Warm-up}
+\author{Evan McKinney }
+\date{August 2020}
+
+\begin{document}
+
+\maketitle
+
+\section*{Preface}
+Notes from Chapter 4 of Yanofsky and Mannucci's Quantum Computing for Computer Scientists book. Full python code avaible at
+\href{https://github.com/evmckinney9/QuantumDrill4}{\color{blue}{https://github.com/evmckinney9/QuantumDrill4}}
+
+\section{Basic Quantum Theory}
+\subsection{Quantum States}
+
+Consider a quantum physical system of a particle confined to a set of discrete positions on a line. Let us suppose that it can only be detected at one of the equally spaced points
+$\{x_{0}, x_{1}, ..., x_{n-1}\}$, where $x_{1} = x_{0} + \delta x, x_{2} = x_{1} + \delta x, \ldots,$ with $\delta x$ some fixed increment.\\
+
+We are going to associate the current state of the particle an n-dimensional complex column vector $[c_{0}, c_{1}, ..., c_{n-1}]^T$.\\
+
+The particle being at the point $x_{i}$ shall be denoted as $|x_{i}\rangle$, using the Dirac ket notation. To each of these n basic states, we shall associate a column vector:
+
+\begin{equation}
+\begin{aligned}
+    |x_{0}\rangle &\longmapsto [1,0, ....0]^T\\
+    |x_{1}\rangle &\longmapsto [0,1, ....0]^T\\
+    &\ldots\\
+    |x_{n-1}\rangle &\longmapsto [0,0, ....1]^T
+\end{aligned}
+\end{equation}
+
+
+An arbitrary state, which we shall denote as $|\psi\rangle$, will be a linear combination of $|x0\rangle, |x1\rangle, ..., |x_{n-1}\rangle$, by suitable complex weights, $c_{0}, c_{1}, ..., c_{n-1}$, known as complex amplitudes.
+\begin{equation}
+    	|\psi\rangle = c_{0}|x_{0}\rangle + c_{1}|x_{1}\rangle + ... + c_{n-1}|x_{n-1}\rangle
+\end{equation}
+
+
+Thus, every state of our system can be represented by an element of $\mathbb{C}^n$ as
+\begin{equation}
+    |\psi\rangle \longmapsto [c_{0}, c_{1}, ..., c_{n-1}]^T
+\end{equation}
+	
+
+We say that the state $|\psi\rangle$ is a superposition of the basic states. $|\psi\rangle$ represents the particle as being simultaneously in all $\{x_{0}, x_{1}, ..., x_{n-1}\}$ locations. 
+The complex numbers $c_{0}, c_{1}, ..., c_{n-1}$ tell us precisely which superposition our particle is currently in.\\
+
+The norm square of the complex number $c_{i}$ divided by the norm squared of $|\psi\rangle$ will tell us the probability that, after observing the particle, we will detect it at the point $x_{i}$:
+\begin{equation}
+    p(x_i) = \frac{|c_i|^2}{||\psi\rangle|^2} = \frac{|c_i|^2}{\sum_{j}|c_j|^2}
+\end{equation}
+
+The inner product of the state space gives us a tool to compute complex numbers known as transition amplitudes, which in turn will enable us to determine how likely the state of the system before a specific measurement, will change to another, after measurement has been carried out.\\
+
+Let 
+\begin{gather}
+|\psi\rangle = \begin{bmatrix}c_0\\c_1\\\ldots\\c_{n-1}\end{bmatrix}
+\quad\text{and}\quad 
+|\psi'\rangle = \begin{bmatrix}c'_0\\c'_1\\\ldots\\c'_{n-1}\end{bmatrix}
+\end{gather}
+be two normalized states. We can extract the transition amplitude between state $|\psi\rangle$ and $|\psi'\rangle$. $|\psi\rangle$ will be our state state. The end state will be a row vector whose coordinates will be the complex conjugate of $|\psi'\rangle$ coordinates.\\
+Such a state is called a bra, and will be denoted by $\langle\psi'|$, or equivalently
+\begin{equation}
+\langle\psi'| = |\psi'\rangle^\dagger = 
+\begin{bmatrix}\overline{c'_0}, \overline{c'_1}, ..., \overline{c'_{n-1}}\end{bmatrix}
+\end{equation}
+
+To find the transition amplitude we multiply them as matrices:
+\begin{equation}
+\langle\psi'| \psi\rangle = 
+\begin{bmatrix}\overline{c'_0}, \overline{c'_1}, ..., \overline{c'_{n-1}}\end{bmatrix}
+\begin{bmatrix}c_0\\c_1\\\ldots\\c_{n-1}\end{bmatrix}
+= \overline{c'_0} \times c_0 + \overline{c'_1} \times c_1 + \ldots + \overline{c'_{n-1}} \times c_{n-1}
+\end{equation}
+
+\subsection{Summary}
+\begin{itemize}
+    \item We have learned to associate a vector space to a quantum system. The dimension of this space reflects the amount of basic states of the system.
+    \item States can be superposed, by adding their representing vectors.
+    \item A state is left unchanged if its representing vector is multiplied by a complex scalar.
+    \item The state space has a geometry, given by its inner product. This geometry has a physical meaning: it tells us the likelihood for a given state to transition into another one after being measured. States that are orthogonal to one another are mutually exclusive.
+\end{itemize}
+
+\subsection{Programming Exercise}
+Write a program that simulates the quantum system described. The user should be able to specify how many points the particle can occupy. The user will also specify a ket state vector by assigning its amplitudes. The program, when asked the likelihood of finding the particle at a given point, will perform the calculations described. If the user enters two kets, the system will calculate the probability of transitioning from the first ket to the second, after an observation has been made.\\
+
+\begin{lstlisting}[language=Python]
+def simpleQuantumSystem(ket1, ket2=np.array(None)):
+
+    numpoints = len(ket1) #input validation
+    if (numpoints > max_points):
+        raise Exception("Specified points exceeds maximum")
+
+    if (ket2.shape == ()): 
+    # calculate the likelihood of finding the particle at a given point
+
+        while (1): #input validation
+            i = int(input(f"Input between 0 and {numpoints-1}: "))
+            if i in range(0, numpoints):
+
+                #equation (4) tells us the probability we will detect
+                #particle at point x_i, norm square of c_i
+                #divided by norm squared of |psi>
+                return abs(ket1[i])**2 / (np.linalg.norm(ket1))**2 
+               
+   
+    else:
+        # calculate the probability of transitioning from the first ket 
+        # to the second, after an observation
+
+        if (ket2.size != ket1.size): #input validation
+            raise Exception("Ket2 does not match size of Ket1")
+        
+        #equation (7) tells us how to calculate the transition amplitude
+        #inner product (using complex conjugate) divided by product of norms
+        amplitude = np.vdot(ket2.T,ket1)/(np.linalg.norm(ket1) * np.linalg.norm(ket2))
+
+        #probability is norm squared because eigenvectors
+        #constitute an orthognal basis of the state space
+        return abs(amplitude)**2
+\end{lstlisting}
+
+\section{Observables}
+We can think of a physical system as specified by a double list: on the one hand, its state space, i.e., the collection of all the states it can possibly be found in, and on the other hand, the set of its observables, i.e., the physical quantities that can be observed in each state of the state space.\\
+
+Each observable may be thought of as a specific question we pose to the system: if the system is current in some given state $|\psi\rangle$, which values can we possibly observe?\\
+
+To each physical observable there corresponds a hermitian operator. An observable is a linear operator, which means that it maps states to states. If we apply the observable $\Omega$ to the state vector $|\psi\rangle$, the resulting state is now $\Omega|\psi\rangle$. Furthermore, the eigenvectors of $\Omega$ form a basis for the state space.\\
+
+For the product of two hermitian operators to be hermitian then 
+\begin{equation}
+    \langle\Omega_1 \star \Omega_2\phi, \psi\rangle = \langle \psi, \Omega_1 \star \Omega_2\psi\rangle.
+\end{equation}
+This in turn implies
+\begin{equation} 
+\Omega_1 \star \Omega_2 = \Omega_2 \star \Omega_1,
+\end{equation}
+or equivalently, the operator
+\begin{equation}
+\begin{bmatrix}\Omega_1, \Omega_2\end{bmatrix} = \Omega_1 \star \Omega_2 - \Omega_2 \star \Omega_1
+\end{equation}
+must be the zero operator (i.e., the operator that sends every vector to the zero vector).\\
+
+The operator $\begin{bmatrix}\Omega_1, \Omega_2\end{bmatrix}$ is called the commutator of $\Omega_1$ and $\Omega_2$. If the commutator is zero then the product is hermitian. \\
+
+Recall that hermitian operators behave such that
+\begin{equation}
+    \langle\Omega\phi, \psi\rangle = \langle\phi, \Omega\psi\rangle
+\end{equation}
+for each pair $|\psi\rangle, |\phi\rangle$. This immediately derives that $\langle\Omega\phi, \psi\rangle$ is a real number for each $|\psi\rangle$, which we shall denote as $\langle\Omega\rangle_\psi$ (the subscript points to the fact that this quantity depends on the state vector). $\langle\Omega\rangle_\psi$ is the expected value of observing $\Omega$ repeatedly on the same state $\psi$.\\
+
+Suppose that $\lambda_0, \lambda_1, \ldots, \lambda_{n-1}$ is the list of eigenvalues of $\Omega$. Let us prepare our quantum system so that it is in state $|\psi\rangle$ and let us observe the value of $\Omega$. We are going to obtain one of the eigenvalues. Repeat n times, and keep track of what was observed each time. At the end of the experiment, the eigenvalue $\lambda_i$ has been seen $p_i$ times, where $0 \leq p_i \leq n$.\\
+
+If n is sufficiently large, then the estimated expected value of $\Omega$ will be approach $\langle\Omega\phi, \psi\rangle$ calculated by
+\begin{equation}
+    \lambda_0 \times \frac{p_0}{n} +  \lambda_1 \times \frac{p_1}{n} + \ldots + \lambda_{n-1} \times \frac{p_{n-1}}{n}
+\end{equation}
+
+We may be interested in knowing the spread of the distribution around its expected value, i.e., the variance of the distribution on the set of eigenvalues. First introduce the hermitian operator
+
+\begin{equation}
+    \Delta_\psi(\Omega) = \Omega - \langle\Omega\rangle_\psi I
+\end{equation}
+
+(I is the identity operator). The operator $\Delta_\psi(\Omega)$ acts on a generic vector $|\phi\rangle$ in the following fashion: 
+\begin{equation}
+    \Delta_\psi(\Omega)|\phi\rangle = \Omega(|\phi\rangle) - (\langle\Omega\rangle_\psi)|\phi\rangle
+\end{equation}
+
+So $\Delta_\psi(\Omega)$ is the demeaned version of $\Omega$.\\
+
+We can now define the variance of $\Omega$ at $|\psi\rangle$ as the expectation value of $\Delta_\psi(\Omega)$ squared:
+\begin{equation}
+    Var_\psi(\Omega) = \langle 
+    (\Delta_\psi(\Omega))
+    \star
+    (\Delta_\psi(\Omega))
+    \rangle_\psi
+\end{equation}
+
+remembering that
+\begin{equation}
+Var(X) = E((X - \mu)^2) = E((X-\mu)(X-\mu))
+\end{equation}
+where E is the expected value function.
+
+\subsubsection*{Heisenberg's Uncertainty Principle}
+Let us begin with two observables, represented by the two hermitians $\Omega_1$ and $\Omega_2$, and a given state, say, $|\psi\rangle$. We can compute the variance of $\Omega_1$ and $\Omega_2$ on $|\psi\rangle$, obtaining $Var_\psi(\Omega_1)$ and $Var_\psi(\Omega_2)$. We have two observables, and our goal is to simultaneously minimize their variances, thereby getting a sharp outcome for both. 
+If there were no correlation in the variances, we could expect a very sharp measure of both observables on some state. This is not the case.\\
+
+The product of the variances of two arbitrary hermitian operators on a given state is always greater than or equal to one-fourth the square of the expected value of their commutator:
+\begin{equation}
+    Var_\psi(\Omega_1) \times Var_\psi(\Omega_2) \geq \frac{1}{4}|
+    \langle
+    \begin{bmatrix}
+    \Omega_1, \Omega_2
+    \end{bmatrix}
+    \rangle_\psi|^2
+\end{equation}
+
+The commutator measures how good a simultaneous measure of two observables can possibly be. If the commutator happens to be zero, there is no limit to accuracy. In quantum mechanics, plenty of operators do not commute, e.g., directional spin operators. \\
+
+Consider the quantum system given by the pair position-momentum. The image of $|\psi\rangle$ in the position basis is very different from the one associated with the momentum eigenbasis. The position eigenbasis is made of Dirac's deltas. Therefore, $|\psi\rangle$ is decomposed into a weighted sum of peaks. The momentum eigenbasis, on the other hand, is made of sinusoids, whose position is totally undetermined. The commutator of the position-momentum pair captures this and is thus not zero. IF we can pin down the particle position at a given point in time (i.e., if the variance of its position operator is very small), we are at a loss as to its momentum (i.e., the variance of its momentum operator is very big), and vice versa.
+
+\subsection{Summary}
+\begin{itemize}
+    \item Observables are represented by hermitian operators. The result of an observation is always an eigenvalue of the hermitian.
+    \item The expression $\langle\psi|\Omega|\psi\rangle$ represents the expected value of observing $\Omega$ on $|\psi\rangle$.
+    \item Observables in general do not commute. This means that the order of observation matters. Moreover, if the commutator of two observables is not zero, there is an intrinsic limit to our capability of measuring their values simultaneously.
+\end{itemize}
+
+\subsection{Programming Exercise}
+Continue your simulation of a quantum system by adding observables to the picture: the user will input a square matrix of appropriate size, and a ket vector. The program will verify that the matrix is hermitian, and if so, it will calculate the mean value and the variance of the observables on the given state.\\
+\begin{lstlisting}[language=Python]
+def verifyHermitian(matrix):
+    if not square(matrix): #input validation
+        raise Exception("Not a square matrix")
+
+    X = np.matrix(matrix)
+    #iff conjugate transpose equals itself
+    return (X.getH() == X).all()
+
+def observableMeanValue(observable, ket):
+    #see example 4.2.5 from book
+
+    #bra is row vector complex conjugate
+    bra = np.matmul(observable, ket).T
+
+    #vdot will take the complex conjugate of bra
+    return np.vdot(bra, ket)
+
+
+def observableVariance(observable, ket):
+    mean = observableMeanValue(observable,ket)
+    #hermitian operator from equation (13)
+    h_o = observable - mean * np.identity(len(observable))
+    h_o_squared = np.matmul(h_o, h_o)
+
+    #calculate variance using equation (15)
+    #see example 4.2.6 from book
+    return np.matmul(np.matmul(np.conj(ket.T), h_o_squared), ket)
+\end{lstlisting}
+\section{Measuring}
+
+The act of carrying out an observation on a given physical system is called measuring. Measuring is the process consisting of asking a specific question and receiving a definite answer.\\
+
+Systems do get perturbed and modified as a result of measuring them. Furthermore, only the probability of observing specific values can be calculated: measurement is inherently a non-deterministic process.\\
+
+An observable can only assume one of its eigenvalues as the result of an observation. Let $\Omega$ be an observable and $|\psi\rangle$ be a state. If the result of measuring $\Omega$ is the eigenvalue $\lambda$, the state after measurement will always be an eigenvector corresponding to $\lambda$.\\
+
+The probability that a normalized start state $|\psi\rangle$ will transition to a specific eigenvector $|e\rangle$ is given by the square of the inner product of the two states: $|\langle e|\psi\rangle|^2$. This expression is the projection of $|\psi\rangle$ along $|e\rangle$.\\
+
+Let us recall that the normalized eigenvectors of $\Omega$ constitute an orthogonal basis of the state space. Therefore, we can express $|\psi\rangle$ as a linear combination in this basis:
+\begin{equation}
+    |\psi\rangle = c_0|e_0\rangle + c_1|e_1\rangle + \ldots c_{n-1}|e_{n-1}\rangle 
+\end{equation}\\
+Now, let us compute the mean:
+\begin{equation}
+    \langle\Omega\rangle_\psi = \langle\Omega\psi, \psi\rangle = |c_0|^2\lambda_0+ |c_1|^2\lambda_1 + \ldots + |c_{n-1}|^2\lambda_{n-1}
+\end{equation}\\
+As we can now see, $\langle\Omega\rangle_v$ is precisely the mean value of the probability distribution
+\begin{equation}
+    (\lambda_0,p_0),  (\lambda_1,p_1),, \ldots,  (\lambda_{n-1},p_{n-1})
+\end{equation}\\
+where each $p_i$ is the square of the amplitude of the collapse into the corresponding eigenvector.
+
+\subsection{Summary}
+
+\begin{itemize}
+    \item The end state of the measurement of an observable is always one of its eigenvectors.
+    \item The probability for an initial state to collapse into an eigenvector of the observable is given by the length squared of the project.
+    \item When we measure several observables, the order of measurements matters
+\end{itemize}
+
+\subsection{Programming Exercise}
+Next step in the simulation: when the user enters an observable and a state vector, the program will return the list of eigenvalues of the observable, and the mean value of the observable on the state, and the probability that the state will transition to each one of the eigenstates. Optional: plot the corresponding probability distribution.\\
+\begin{lstlisting}[language=Python]
+def observableEigenVectors(observable):
+    _, eigenvectors = np.linalg.eigh(observable)
+    return eigenvectors
+
+def observableEigenValues(observable):
+    eigenvalues, _ = np.linalg.eigh(observable)
+    return eigenvalues
+
+def eigenstatesProability(observable, ket):
+    #return the probability that the state will transition to each of the eigenstates
+    eigenstates = observableEigenVectors(observable)
+    eigenvalues = observableEigenValues(observable)
+    pairs = []
+    for eigenvalue, eigenstate in zip(eigenvalues, eigenstates.T):
+        #eigenstate should be a column vector
+        eigenstate.shape = (eigenstate.size,1)
+        probability = simpleQuantumSystem(ket, eigenstate)
+        pairs.append((eigenvalue, probability))
+    return pairs
+
+def eigenvalueMeanValue(observable, ket):
+    #calculates expected value of observable on a state
+    #using eigenvalues and probabilities
+    pairs = eigenstatesProability(observable, ket)
+    mean = 0
+    for i in pairs:
+        mean += i[0] * i[1]
+    return mean
+\end{lstlisting}
+
+
+\section{Dynamics}
+
+In reality, quantum systems do evolve over time, and thus we need to consider quantum dynamics. Just as hermitian operators represent physical observables, unitary operators introduce dynamics in the quantum arena.\\
+
+The evolution of a quantum system (that is not a measurement) is given by a unitary operator or transformation. That is, if U is a unitary matrix that represents a unitary operator and $|\psi(t)\rangle$ represents a state of the system at time t, then
+\begin{equation}
+    |\psi(t+1)\rangle = U|\psi(t)\rangle
+\end{equation}
+will represent the system at time t+1.\\
+
+Unitary transformations are closed under composition and inverse. One says that the set of unitary transformations constitutes a group of transformations with respect to composition.\\
+
+We are now going to see how dynamics is determined by unitary transformations: assume we have a rule, $\mathfrak{U}$, that associates with each instant of time $t_0, t_1, \ldots, t_{n-1}$ a unitary matrix $\mathfrak{U}[t_0], \mathfrak{U}[t_1], \ldots, \mathfrak{U}[t_{n-1}]$.\\
+
+Let us start with an initial state vector $|\psi\rangle$. We can apply $\mathfrak{U}[t_0]$ to $|\psi\rangle$, then apply to the result, and so forth. We will obtain a sequence of state vectors
+
+\begin{equation}
+\begin{aligned}
+    &\mathfrak{U}[t_0]|\psi\rangle,\\
+    &\mathfrak{U}[t_1]\mathfrak{U}[t_0]|\psi\rangle,\\
+    &\ldots,\\
+    &\mathfrak{U}[t_{n-1}]\mathfrak{U}[t_{n-2}]\ldots\mathfrak{U}[t_0]|\psi\rangle.
+\end{aligned}
+\end{equation}
+
+Such a sequence is called the orbit of $|\psi\rangle$ under the action of $\mathfrak{U}[t_i]$ at the time clicks $t_0, t_1, \ldots, t_{n-1}$.\\
+
+By applying the inverses of $\mathfrak{U}[t_0], \mathfrak{U}[t_1], \ldots, \mathfrak{U}[t_{n-1}]$ in reverse or the the quantum system will evolve backwards as it is symmetric with respect to time.\\
+
+A quantum computer shall be placed into an initial state $|\psi\rangle$, and we shall then apply a sequence of unitary operators to the state. When we are done, we will measure the output and get a final state.
+
+\subsubsection*{Schr\"{o}dinger equation}
+How is the sequence $\mathfrak{U}[t_i]$ of unitary transformations actually selected in real-life quantum mechanics?
+\begin{equation}
+    \frac{|\psi(t+\delta t)\rangle - |\psi(t)\rangle}{\delta t} = -i\frac{2\pi}{\hslash}\mathcal{H}|\psi(t)\rangle.
+\end{equation}
+
+Energy is an observable, and therefore for a concrete quantum system is it possible to write down a hermitian matrix representing it. This observable is called the hamiltonian of the system, indicacted by $\mathcal{H}$.\\
+
+The Schr\"{o}dinger equation states that the rate of variation of the state vector $|\psi(t)\rangle$ with respect to time at the instant t is equal (up to the scalar factor $\frac{2\pi}{\hslash}$) to $|\psi(t)\rangle$ multiplied by the operator $-i * \mathcal{H}$. By solving the equation with some initial conditions one is able to determine the evolution of the system over time. 
+
+
+\subsection{Summary}
+
+\begin{itemize}
+    \item Quantum dynamics is given by unitary transformations
+    \item Unitary transformations are invertible; thus, all closed system dynamics are reversible in time (as long as no measurement is involved).
+    \item The concrete dynamics is given by the Schrodinger equation. which determines the evolution of a quantum system whenever its hamiltonian is specified
+\end{itemize}
+
+\subsection{Programming Exercise}
+Add dynamics to your computer simulation of the particle on a grid: the user should input a number of time steps n, and a corresponding sequence of unitary matrices $U_n$ of the appropriate size. The program will then compute the state vector after the entire sequence $U_n$ has been applied.\\
+\begin{lstlisting}[language=Python]
+def dynamicSimulation(ket, matrix_sequence, timesteps=-1,):
+    if timesteps == -1: #input validation
+        timesteps = len(matrix_sequence)
+    if timesteps > len(matrix_sequence) or timesteps < 0:
+        raise Exception("invalid timesteps")
+
+    if timesteps == 0:
+        return ket
+    
+    unitary = matrix_sequence[1]
+    for i in range(1,timesteps):
+        unitary = np.matmul(unitary, matrix_sequence[i])
+    return np.matmul(unitary,ket)
+\end{lstlisting}
+
+\section{Assembling Quantum Systems}
+
+Recall the simple quantum system of a particle moving in a confined one-dimensional grid on the set of points $\{x_0, x_1, \dots, x_{n-1}\}$. Now, let us suppose that we are dealing with two particles confined to the grid. The points on the grid that can be occupied by the first particle will be $\{x_0, x_1, \dots, x_{n-1}\}$ and the second particle can be at the points $\{y_0, y_1, \dots, y_{n-1}\}$.\\
+
+Assembling quantum systems means tensoring the state space of their constituents. Assume we have two independent quantum systems Q and Q', represented respectively by the vector spaces $\mathbb{V}$ and $\mathbb{V'}$. The quantum system obtained by merging Q and Q' will have tensor product $\mathbb{V} \otimes \mathbb{V'}$ as a state space.\\
+
+We can assemble as many systems as we like. The tensor product of vector spaces is associative, so we can progressively build larger and larger systems:
+\begin{equation}
+    \mathbb{V}_0 \otimes \mathbb{V}_1 \otimes \ldots \otimes \mathbb{V}_k
+\end{equation}
+
+There are $n \times m$ possible basic states:
+\begin{equation*}
+    |x_i\rangle \otimes |y_j\rangle, \text{meaning the first particle is at } x_i \text {and the second particle is at } y_j.
+\end{equation*}
+
+Now, let us write the generic state vector as a superposition of the basic states:
+
+\begin{equation}
+    |\psi\rangle = c_{0,0}|x_0\rangle\otimes|y_0\rangle + \ldots + c_{i,j}|x_i\rangle\otimes|y_j\rangle + \ldots + c_{n-1,m-1}|x_{n-1}\rangle\otimes|y_{m-1}\rangle
+\end{equation}
+which is a vector in the $(n \times m)$-dimensional complex space $\mathbb{C}^{n \times m}$.\\
+
+The quantum amplitude $|c_{i,j}|$ squared will give us the probability of finding the two particles at positions $x_i$ and $y_j$, respectively.
+
+\subsubsection*{Entanglement}
+Assembled complex systems cannot be understood completely in terms of their constituents. Consider the state
+
+\begin{equation*}
+    |\psi\rangle = |x_0\rangle \otimes |y_0\rangle + |x_1\rangle \otimes |y_1\rangle
+\end{equation*}
+equivalently,
+\begin{equation}
+    |\psi\rangle = 1|x_0\rangle \otimes |y_0\rangle + 0|x_0\rangle \otimes |y_1\rangle + 0|x_1\rangle \otimes |y_0\rangle + 1|x_1\rangle \otimes |y_1\rangle.
+\end{equation}
+Then the vector representing the first particle on the line can be written as
+$c_0|x_0\rangle + c_1|x_1\rangle$ and the vector representing the second particle on the line can be written as $c'_0|y_0\rangle + c'_1|y_1\rangle$.\\
+
+Therefore, if $|\psi\rangle$ came from the tensor product of the two subsystems, we would have
+\begin{equation}
+\begin{aligned}
+   (c_0|x_0\rangle + c_1|x_1\rangle) \otimes (c'_0|y_0\rangle + c'_1|y_1\rangle) = &c_0c'_0|x_0\rangle \otimes |y_0\rangle + c_0c'_1|x_0\rangle \otimes |y_1\rangle\\
+   &+ c_1c'_0|x_1\rangle \otimes |y_0\rangle + c_1c'_1|x_1\rangle \otimes |y_1\rangle
+\end{aligned}
+\end{equation}
+
+From Equation (26) this implies that $c_0c'_0 = c_1c'_1 = 1$ and $c_0c'_1 = c_1c'_0 = 0$ which has no solution. Conclude that $|\psi\rangle$ cannot be rewritten as a tensor product.\\
+
+The individual states of the two particles are entangled. The first particle has a 50-50 chance of being found at the position $x_0$ or at $x_1$. If it is found at position $x_0$, because the term $|x_0\rangle \otimes |y_1\rangle$ has a 0 coefficient, we conclude the second particle can only be found in position $y_0$. Similarly, if the first particle is found in position $x_1$, the second particle must be in position $y_1$.\\
+
+States that can be broken into the tensor product of states from the constituent subsystems are called separable states, whereas states that are unbreakable are referred to as entangled states. Entanglement plays a central role in algorithm design, cryptography, teleportation, and decoherence.
+
+
+
+\subsection{Summary}
+
+\begin{itemize}
+    \item We can use the tensor product to build complex quantum systems out of simpler ones.
+    \item The new system cannot be analyzed simply in terms of states belonging to its subsystems. An entire set of new states has been created, which cannot be resolved into their constituents.
+\end{itemize}
+
+\subsection{Programming Exercise}
+Expand the simulation of the last sections by letting the user choose the number of particles.\\
+\begin{lstlisting}[language=Python]
+def multiQuantumSystem(*multi_stateSpace):
+    #returns a tensor product of the vector spaces
+    num_particles = len(multi_stateSpace)
+    if num_particles <= 0 or num_particles > max_particles:
+        raise Exception("invalid number of particles")
+    
+    tensor_product = multi_stateSpace[0]
+
+    for i in range(1, num_particles):
+        tensor_product = np.kron(tensor_product, multi_stateSpace[i])
+
+    return tensor_product
+\end{lstlisting}
+
+\end{document}
